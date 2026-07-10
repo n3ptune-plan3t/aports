@@ -1,5 +1,5 @@
 pkgname=noctalia
-pkgver=5.0.0_beta2
+pkgver=5.0.0-beta2
 pkgrel=0
 pkgdesc="Native Wayland desktop shell"
 url="https://github.com/noctalia-dev/noctalia-shell"
@@ -40,10 +40,19 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/noctalia-dev/noctalia-shell/
 
 builddir="$srcdir"/noctalia-5.0.0-beta2
 
+prepare() {
+	default_prepare
+	# Personal build: pin to znver1 instead of -march=native, since
+	# -march=native fails to autodetect correctly inside abuild-rootbld's
+	# sandboxed build environment (restricted /proc/cpuinfo visibility).
+	# znver1 targets this machine's actual CPU (Ryzen w/ Vega, Zen 1).
+	sed -i \
+		-e "s/-march=native/-march=znver1/g" \
+		-e "s/-mtune=native/-mtune=znver1/g" \
+		"$builddir"/meson.build
+}
+
 build() {
-	# Use debugoptimized (not release): upstream's release buildtype injects
-	# -march=native/-mtune=native, which would tie the binary to the build
-	# machine's CPU. debugoptimized gives -O2 and still honors cpp_std=c++23.
 	meson setup \
 		--prefix=/usr \
 		--sysconfdir=/etc \
