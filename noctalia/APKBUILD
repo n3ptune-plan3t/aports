@@ -1,0 +1,69 @@
+pkgname=noctalia
+pkgver=5.0.0_beta2
+pkgrel=0
+pkgdesc="Native Wayland desktop shell"
+url="https://github.com/noctalia-dev/noctalia-shell"
+arch="all"
+license="MIT"
+# pipewire daemon is required at runtime (Noctalia aborts if it can't connect)
+depends="pipewire"
+makedepends="
+	build-base
+	meson
+	samurai
+	cairo-dev
+	curl-dev
+	fontconfig-dev
+	freetype-dev
+	glib-dev
+	harfbuzz-dev
+	libqalculate-dev
+	librsvg-dev
+	libwebp-dev
+	libxkbcommon-dev
+	libxml2-dev
+	linux-pam-dev
+	mesa-dev
+	md4c-dev
+	nlohmann-json
+	pango-dev
+	polkit-dev
+	sdbus-cpp-dev
+	stb
+	tomlplusplus-dev
+	wayland-dev
+	wayland-protocols
+	wireplumber-dev
+	"
+subpackages="$pkgname-dbg"
+source="$pkgname-$pkgver.tar.gz::https://github.com/noctalia-dev/noctalia-shell/archive/refs/tags/v5.0.0-beta2.tar.gz"
+
+builddir="$srcdir"/noctalia-5.0.0-beta2
+
+build() {
+	# Use debugoptimized (not release): upstream's release buildtype injects
+	# -march=native/-mtune=native, which would tie the binary to the build
+	# machine's CPU. debugoptimized gives -O2 and still honors cpp_std=c++23.
+	meson setup \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--buildtype=release \
+		-Dtests=disabled \
+		-Djemalloc=disabled \
+		output "$builddir"
+	meson compile -C output
+}
+
+check() {
+	meson test --no-rebuild -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+48d0ad096a7f3b96b40003a8c02260e2737c62dde9abf155e875ad32c83dc79522916723e63f65efbcbb5d3b20877aa28593723956d46ff1b996556db6534d6c  noctalia-5.0.0_beta2.tar.gz
+"
