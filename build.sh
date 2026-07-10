@@ -9,8 +9,6 @@ addgroup builder abuild
 chown -R builder /repo
 echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
 
-# Non-interactive throwaway signing key. </dev/null guarantees no hang
-# even if -n somehow fails to register.
 su builder -c 'abuild-keygen -a -i -n </dev/null'
 
 export APORTSDIR=/repo
@@ -18,8 +16,9 @@ export REPODEST=/repo/out
 cd /repo
 
 found=0
-for d in $(find . -maxdepth 2 -name APKBUILD -printf "%h\n"); do
+for apkbuild in $(find . -maxdepth 2 -name APKBUILD); do
   found=1
+  d=$(dirname "$apkbuild")
   echo "==> Building $d"
   ( cd "$d" && su builder -c "abuild checksum && abuild rootbld" )
 done
