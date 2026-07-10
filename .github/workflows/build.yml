@@ -1,16 +1,11 @@
-name: Build Alpine packages
+name: Build Alpine package
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '**/APKBUILD'
-      - 'build.sh'
-      - '.github/workflows/build.yml'
-  pull_request:
-    paths:
-      - '**/APKBUILD'
   workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package directory to build (e.g. noctalia, ephoto)'
+        required: true
 
 jobs:
   build:
@@ -22,16 +17,17 @@ jobs:
       - name: Allow unprivileged user namespaces (Ubuntu 24.04 AppArmor restriction)
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
-      - name: Build packages in Alpine edge container
+      - name: Build package in Alpine edge container
         run: |
           docker run --rm --privileged \
+            -e PKG="${{ github.event.inputs.package }}" \
             -v "${{ github.workspace }}:/repo" \
             -w /repo \
             alpine:edge sh /repo/build.sh
 
-      - name: Upload built packages
+      - name: Upload built package
         uses: actions/upload-artifact@v4
         with:
-          name: apk-packages
+          name: apk-${{ github.event.inputs.package }}
           path: out/
           if-no-files-found: error
