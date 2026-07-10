@@ -1,0 +1,32 @@
+pkgname=ephoto
+pkgver=1.6.0
+pkgrel=0
+pkgdesc="EFL photo gallery viewer"
+url="https://www.enlightenment.org/"
+arch="all"
+license="BSD-2-Clause"
+depends="efl libexif"
+makedepends="meson ninja pkgconf efl-dev libexif-dev"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://download.enlightenment.org/rel/apps/$pkgname/$pkgname-$pkgver.tar.xz"
+builddir="$srcdir/$pkgname-$pkgver"
+
+build() {
+	CFLAGS="$CFLAGS -fvisibility=hidden" \
+	abuild-meson \
+		--buildtype=release \
+		output
+	meson compile -C output
+}
+
+check() {
+	meson test --no-rebuild -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+	install -Dm644 AUTHORS "$pkgdir"/usr/share/licenses/$pkgname/AUTHORS
+}
+
+sha512sums="
+"
