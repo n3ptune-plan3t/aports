@@ -24,7 +24,7 @@ jobs:
           docker run --rm --privileged \
             -v "${{ github.workspace }}:/repo" \
             -w /repo \
-            alpine:edge /repo/build.sh
+            alpine:edge sh /repo/build.sh
 
       - name: Upload built packages
         uses: actions/upload-artifact@v4
