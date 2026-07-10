@@ -42,17 +42,28 @@ builddir="$srcdir"/noctalia-5.0.0-beta2
 
 prepare() {
 	default_prepare
-	# Personal build: pin to znver1 instead of -march=native, since
-	# -march=native fails to autodetect correctly inside abuild-rootbld's
-	# sandboxed build environment (restricted /proc/cpuinfo visibility).
-	# znver1 targets this machine's actual CPU (Ryzen w/ Vega, Zen 1).
+
+	# Personal build: pin to znver1 instead of -march=native (fails to
+	# autodetect inside abuild-rootbld's sandbox).
 	sed -i \
 		-e "s/-march=native/-march=znver1/g" \
 		-e "s/-mtune=native/-mtune=znver1/g" \
 		"$builddir"/meson.build
+
+	# Alpine's stb package installs headers flat (/usr/include/stb_*.h)
+	# instead of nested under stb/ like most other distros (Debian's
+	# libstb-dev, etc). noctalia's meson.build expects the nested layout
+	# (#include <stb/stb_image_resize2.h>), so build a compat shim dir
+	# with symlinks and expose it via CPATH.
+	mkdir -p "$srcdir"/stb-compat/stb
+	for h in /usr/include/stb_*.h; do
+		ln -sf "$h" "$srcdir"/stb-compat/stb/"$(basename "$h")"
+	done
 }
 
 build() {
+	export CPATH="$srcdir/stb-compat${CPATH:+:$CPATH}"
+
 	meson setup \
 		--prefix=/usr \
 		--sysconfdir=/etc \
