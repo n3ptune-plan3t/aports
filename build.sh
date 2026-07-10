@@ -11,6 +11,12 @@ echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
 
 su builder -c 'abuild-keygen -a -i -n </dev/null'
 
+cat > /repo/.rootbld-repositories <<'EOF'
+https://dl-cdn.alpinelinux.org/alpine/edge/main
+https://dl-cdn.alpinelinux.org/alpine/edge/community
+https://dl-cdn.alpinelinux.org/alpine/edge/testing
+EOF
+
 export APORTSDIR=/repo
 export REPODEST=/repo/out
 cd /repo
